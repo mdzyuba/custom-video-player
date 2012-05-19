@@ -19,7 +19,7 @@
       title='Custom Player Gadget' 
       title_url='http://code.google.com/p/custom-video-player'
       description='Add Youtube Player to play single videos or playlists. Customize size and properties of the player such as autoplay, full screen, loop, autohide player controls, etc.' 
-      thumbnail=''
+      thumbnail='http://custom-video-player.googlecode.com/git/images/video_player_thumbnail.png'
       screenshot='' 
       height='560'
       width='90%' 
