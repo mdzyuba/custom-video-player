@@ -17,7 +17,7 @@
 <Module>
   <ModulePrefs 
       title='Custom Player Gadget' 
-      title_url='http://code.google.com/p/custom-player-gadget/'
+      title_url='http://code.google.com/p/custom-video-player'
       description='Add Youtube Player to play single videos or playlists. Customize size and properties of the player such as autoplay, full screen, loop, autohide player controls, etc.' 
       thumbnail=''
       screenshot='' 
