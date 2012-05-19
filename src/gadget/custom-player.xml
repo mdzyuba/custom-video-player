@@ -1,0 +1,261 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!-- 
+   Copyright 2012 Mykola Dzyuba
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License. 
+-->
+<Module>
+  <ModulePrefs 
+      title='Custom Player Gadget' 
+      title_url='http://code.google.com/p/custom-player-gadget/'
+      description='Add Youtube Player to play single videos or playlists. Customize size and properties of the player such as autoplay, full screen, loop, autohide player controls, etc.' 
+      thumbnail=''
+      screenshot='' 
+      height='560'
+      width='90%' 
+      author='Mykola Dzyuba' 
+      author_email='myk.code@gmail.com'
+      scaling='true'>
+    <Locale lang='en' country='us' />
+    <Require feature='dynamic-height' />
+    <Require feature="setprefs"/>
+  </ModulePrefs>
+  <UserPref name='videoId' display_name='Video ID' required='false' display_value='oAVjF_7ensg' />
+  <UserPref name='playlistId' display_name='Playlist ID'
+    required='false'/>
+  <UserPref name='allowfullscreen' display_name='allowfullscreen' datatype="bool" required='false' />
+  <UserPref name='autoplay' display_name='autoplay' datatype="bool" required='false' />
+  <UserPref name='loop' display_name='loop' datatype="bool" required='false' />
+  <UserPref name='autohide' display_name='autohide' datatype="enum" required='false' >
+    <EnumValue value="0" display_value="0 - do not hide controls"/>
+    <EnumValue value="1" display_value="1 - hide controls"/>
+    <EnumValue value="2" display_value="2 - default"/>
+  </UserPref>
+  <Content type='html' view='configuration' preferred_height="100">
+    <![CDATA[
+    <p>Please specify either videoId or playlistId.</p>
+    <table class='config-options'>
+     <tr>
+      <td align='left' class='label'>Video ID:</td>
+      <td align='left'>
+       <input type='text' id='videoId' onchange='Update()' />
+      </td>
+     </tr>
+     <tr>
+      <td align='left' class='label'>Playlist ID:</td>
+      <td align='left'>
+       <input type='text' id='playlistId' onchange='Update()' />
+      </td>
+     </tr>
+     <tr>
+      <td align='left' class='label'>allowfullscreen:</td>
+      <td align='left'>
+       <input type='checkbox' id='allowfullscreen' onchange='Update()' />
+      </td>
+     </tr>
+     <tr>
+      <td align='left' class='label'>autoplay:</td>
+      <td align='left'>
+       <input type='checkbox' id='autoplay' onchange='Update()' />
+      </td>
+     </tr>
+     <tr>
+      <td align='left' class='label'>loop:</td>
+      <td align='left'>
+       <input type='checkbox' id='loop' onchange='Update()' />
+      </td>
+     </tr>
+     <tr>
+       <td align="left" class="label">autohide:</td>
+       <td align="left">
+         <select id="autohide" onchange="Update()">
+           <option selected="selected" value="2">2 - default</option>
+           <option value="1">1 - hide controls</option>
+           <option value="0">0 - keep controls</option>
+         </select>
+       </td>
+      </tr>
+    </table> 
+    <script type='text/javascript'>
+      function Update() {
+        var prefs = new gadgets.Prefs();
+        var videoId = document.getElementById('videoId').value;
+        var playlistId = document.getElementById('playlistId').value;
+        var allowfullscreen = document.getElementById('allowfullscreen').checked;
+        var autoplay = document.getElementById('autoplay').checked;
+        var loop = document.getElementById('loop').checked;
+        var autohide = document.getElementById('autohide').value;
+        console.log('allowfullscreen: ', allowfullscreen);
+        prefs.set('videoId', videoId);
+        prefs.set('playlistId', playlistId);
+        prefs.set('allowfullscreen', allowfullscreen);
+        prefs.set('autoplay', autoplay);
+        prefs.set('loop', loop);
+        prefs.set('autohide', autohide);
+        gadgets.window.adjustHeight();
+      }
+      
+      function Initialize() {
+        UpdateInitialValues();
+        Update();
+      }
+      
+      function UpdateInitialValues() {
+        var videoId = '__UP_videoId__';
+        if (videoId.length > 0) {
+          document.getElementById('videoId').value = videoId;
+          console.log("updating videoId: ", videoId);
+        }
+        var playlistId = '__UP_playlistId__';
+        if (playlistId.length > 0) {
+          document.getElementById('playlistId').value = playlistId;
+        }
+        var allowfullscreen = '__UP_allowfullscreen__';
+        if (allowfullscreen == 'true') {
+          document.getElementById('allowfullscreen').checked = true;
+        } else {
+          document.getElementById('allowfullscreen').checked = false;
+        }
+        var autoplay = '__UP_autoplay__';
+        console.log('stored autoplay: ', autoplay);
+        console.log('typeof autoplay: ', typeof autoplay);
+        if (autoplay == 'true') {
+          document.getElementById('autoplay').checked = true;
+        } else {
+          document.getElementById('autoplay').checked = false;
+        }
+        var loop = '__UP_loop__';
+        if (loop == 'true') {
+          document.getElementById('loop').checked = true;
+        } else {
+          document.getElementById('loop').checked = false;
+        }
+        var autohide = '__UP_autohide__';
+        if (autohide) {
+          document.getElementById('autohide').value = autohide;
+        }
+      }
+      gadgets.util.registerOnLoadHandler(Initialize);
+    </script>
+    ]]>
+  </Content>  
+  <Content type='html' view='home' preferred_width='800'
+    preferred_height='475'>
+    <![CDATA[
+    <style type="text/css">
+    </style>    
+    <div id='player-container'></div>
+    <script type='text/javascript'>
+      var prefs = new gadgets.Prefs();
+
+      function Initialize() {
+        var iframe = createIFrame();
+        console.log('iframe: ', iframe);
+        var playerContainer = document.getElementById('player-container');
+        playerContainer.appendChild(iframe);
+        window.onresize = onGadgetWindowResizeHandler;
+        gadgets.window.adjustHeight();
+      }
+      
+      function createIFrame() {
+        var iframe = document.createElement('iframe');
+        iframe.setAttribute('width', '100%');
+        var width = 800;
+        if (gadgets.window) {
+          var viewport = gadgets.window.getViewportDimensions();
+          if (viewport.width) {
+            width = viewport.width;
+          }
+        }
+        height = calculatePlayerHeight(width);
+        iframe.setAttribute('height', height + 'px');
+        console.log('player size: ', width, ', ', height);
+        iframe.setAttribute('id', 'player');
+        var src = '';
+        var videoId = prefs.getString('videoId');
+        console.log('videoId: ', videoId);
+        if (!isEmpty(videoId)) {
+          src = 'http://www.youtube.com/embed/' + videoId;
+        } else {
+          var playlistId = prefs.getString('playlistId');
+          console.log('playlistId: ', playlistId);
+          if (!isEmpty(playlistId)) {
+            src = 'http://www.youtube.com/embed/videoseries?list=' + playlistId;
+          }
+        }
+        var allowfullscreen = prefs.getBool('allowfullscreen');
+        if (allowfullscreen) {
+          iframe.setAttribute('allowfullscreen', allowfullscreen);
+        }
+        var autoplay = prefs.getBool('autoplay');
+        console.log('prefs autoplay: ', autoplay);
+        if (autoplay) {
+          var separator = getSeparator(src);
+          src = src + separator + 'autoplay=1';
+        }
+        var loop = prefs.getBool('loop');
+        if (loop) {
+          var separator = getSeparator(src);
+          src = src + separator + 'loop=1';
+        }
+        var autohide = prefs.getString('autohide');
+        if (autohide) {
+          var separator = getSeparator(src);
+          src = src + separator + 'autohide=' + autohide;
+        }
+        iframe.setAttribute('enablejsapi', 1);
+        iframe.setAttribute('src', src);
+        return iframe;      
+      }
+      
+      function onGadgetWindowResizeHandler() {
+        console.log('resize event');
+        resizePlayer();
+      }
+      
+      function resizePlayer() {
+        var iframe = document.getElementById('player');
+        if (gadgets.window) {
+          var viewport = gadgets.window.getViewportDimensions();
+          console.log('current iframe size: ', iframe.style.width, ' ,', iframe.style.height); 
+          console.log('viewport size: ', viewport.width, ' ,', viewport.height); 
+          var height = calculatePlayerHeight(viewport.width);
+          console.log('changeing iframe height to: ', height); 
+          iframe.style.height = height;
+          gadgets.window.adjustHeight();
+        }      
+      }
+      
+      function isEmpty(str) {
+        return (/^\s*$/).test(str);
+      }
+      
+      function getSeparator(str) {
+        if ((/\?/).test(str)) {
+          return '&';
+        }
+        return '?';
+      }
+      
+      function calculatePlayerHeight(width) {
+        var controlsHeight = 25;
+        var height = width / 16 * 9 + controlsHeight;
+        console.log('calculated height: ', height, ' for width: ', width);
+        return parseInt(height)
+      }
+      
+      gadgets.util.registerOnLoadHandler(Initialize);
+    </script>
+    ]]>
+  </Content>
+</Module>
