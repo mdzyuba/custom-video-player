@@ -1,0 +1,1 @@
+The gadget's features are: embed Youtube video player, play Youtube videos or playlists, set custom size of the video player, set player parameters such as autoplay, fullscreen, loop, etc.
